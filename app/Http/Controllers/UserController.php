@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -100,58 +101,73 @@ class UserController extends Controller
     }
 
     public function loginUser(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|min:8'
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'email' => 'required|email',
+        'password' => 'required|min:8'
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 422,
-                'message' => $validator->errors()
-            ]);
-        } else {
-            $user = User::where('email', $request->email)->first();
-            if ($user) {
-                if (Hash::check($request->password, $user->password)) {
-                    $token = $user->createToken('authToken')->plainTextToken;
-                    return response()->json([
-                        'status' => 200,
-                        'message' => 'Login Successful',
-                        'token' => $token
-                    ]);
-                } else {
-                    return response()->json([
-                        'status' => 401,
-                        'message' => 'Invalid Password'
-                    ]);
-                }
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 422,
+            'message' => $validator->errors()
+        ]);
+    } else {
+        $user = User::where('email', $request->email)->first();
+        if ($user) {
+            if (Hash::check($request->password, $user->password)) {
+                Auth::login($user); // Log the user in
+
+                $token = $user->createToken('authToken')->plainTextToken;
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Login Successful',
+                    'token' => $token,
+                    'redirect' => route('profile') // Send the profile route URL
+                ]);
             } else {
                 return response()->json([
                     'status' => 401,
-                    'message' => 'Invalid Email'
+                    'message' => 'Invalid Password'
                 ]);
             }
+        } else {
+            return response()->json([
+                'status' => 401,
+                'message' => 'Invalid Email'
+            ]);
         }
     }
+}
 
-    public function profile()
-    {
-        // Add your profile logic here
+
+public function profile(Request $request)
+{
+    // Determine where to redirect based on user's is_admin status
+    if ($request->user()->is_admin == 1) {
+        return redirect()->route('admin.dashboard'); // Replace 'admin.dashboard' with your actual admin route name
+    } else {
         return view('profile');
     }
+}
 
-    public function logout(Request $request)
-    {
-        // Revoke the token that was used to authenticate the current request
-        $request->user()->tokens()->delete();
-    
+
+public function logout(Request $request)
+{
+    $request->user()->tokens()->delete();
+
+    // Determine where to redirect after logout based on user's is_admin status
+    if ($request->user()->is_admin == 1) {
         return response()->json([
+            'redirect' => route('auth.login'), // Replace 'admin.login' with your actual admin login route name
+            'message' => 'Logged out successfully.'
+        ]);
+    } else {
+        return response()->json([
+            'redirect' => route('login'), // Replace 'login' with your actual user login route name
             'message' => 'Logged out successfully.'
         ]);
     }
-
-   
-
 }
+}
+

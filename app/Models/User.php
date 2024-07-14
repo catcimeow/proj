@@ -14,11 +14,7 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'email',
-        'password',
-        'profile_image_path',
-        'is_admin',
-        'is_activated',
+        'email', 'password', 'profile_image_path', 'is_admin', 'is_activated',
     ];
 
     public function buyer()

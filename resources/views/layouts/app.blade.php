@@ -27,6 +27,13 @@
     <!-- Custom JavaScript -->
     <script src="{{ asset('js/datatable.js') }}"></script>
 
+    <!-- Include jQuery if not already included -->
+
+<script src="{{ asset('js/profile.js') }}"></script>
+
+<script src="{{ asset('js/logout.js') }}"></script>
+
+
     @yield('scripts')
 </body>
 </html>

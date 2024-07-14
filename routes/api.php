@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DatatableController;
+use App\Http\Controllers\DashboardController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -22,8 +23,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware('auth:sanctum')->post('/logout', [UserController::class, 'logout'])->name('logout');
 Route::middleware('auth:sanctum')->get('/profile', [UserController::class, 'profile']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/admin/action', [DashboardController::class, 'adminAction'])->name('admin.action');
+});
 
-Route::get('/users', [DatatableController::class, 'index']);
+
 
 
 
@@ -34,3 +38,4 @@ Route::apiResource('/ingredients', IngredientController::class);
 Route::post('/register', [UserController::class, 'registerUser']);
 Route::post('/login', [UserController::class, 'loginUser']);
 
+Route::get('/user/fetch', [DatatableController::class, 'fetchUser'])->name('user.fetch');

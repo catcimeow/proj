@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Controllers\DatatableController;
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\IngredientController;
+use App\Http\Controllers\DashboardController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -56,7 +59,15 @@ Route::get('/', [UserController::class, 'index'])->name('auth.login');
 Route::get('/register', [UserController::class, 'register'])->name('auth.register');
 Route::post('/register', [UserController::class, 'registerUser']);
 Route::post('/login', [UserController::class, 'loginUser'])->name('login');
-Route::get('/profile', [UserController::class, 'profile'])->name('profile');
+// Route::get('/profile', [UserController::class, 'profile'])->name('profile');
 Route::middleware('auth')->group(function () {
+    Route::get('/profile', [UserController::class, 'profile'])->name('profile');
     Route::post('/logout', [UserController::class, 'logout'])->name('auth.logout');
+});
+// Route::post('/logout', [UserController::class, 'logout'])->name('auth.logout');
+
+Route::get('/user/index',[DatatableController::class, 'userIndex'])->name('user.index');
+
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin/dashboard', [DashboardController::class, 'dashboard'])->name('admin.dashboard');
 });
