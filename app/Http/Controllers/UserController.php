@@ -154,20 +154,42 @@ public function profile(Request $request)
 
 public function logout(Request $request)
 {
-    $request->user()->tokens()->delete();
+    // Check if there is an authenticated user
+    if ($request->user()) {
+        Auth::logout(); // Log the user out
+        $request->session()->invalidate(); // Invalidate the session
+        $request->session()->regenerateToken(); // Regenerate the CSRF token
+    }
 
-    // Determine where to redirect after logout based on user's is_admin status
-    if ($request->user()->is_admin == 1) {
-        return response()->json([
-            'redirect' => route('auth.login'), // Replace 'admin.login' with your actual admin login route name
-            'message' => 'Logged out successfully.'
-        ]);
-    } else {
-        return response()->json([
-            'redirect' => route('login'), // Replace 'login' with your actual user login route name
-            'message' => 'Logged out successfully.'
-        ]);
+    // Redirect to the login page with a logout message
+    return redirect()->route('auth.login')->with('message', 'Logged out successfully.');
+}
+
+
+public function getUserById($id)
+{
+    $user = User::find($id);
+
+    if (!$user) {
+        return response()->json(['error' => 'User not found'], 404);
+    }
+
+    return response()->json(['user' => $user]);
+}
+
+
+public function updateUser(Request $request, $id)
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $user->is_admin = $request->input('role') == 'admin';
+        $user->is_activated = $request->input('active_status') == 'active';
+        $user->save();
+
+        return response()->json(['user' => $user, 'message' => 'User updated successfully']);
     }
 }
-}
-

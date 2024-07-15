@@ -135,7 +135,7 @@
         }
 
         function showMessage(type, message) {
-            return `<div class="alert alert-${type}">${message}</div>`;
+            return <div class="alert alert-${type}">${message}</div>;
         }
 
         function removeValidationClasses(form) {

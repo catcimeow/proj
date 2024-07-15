@@ -9,4 +9,13 @@
         <button type="submit" class="btn btn-link">Logout</button>
     </form>
 </div>
+
+@section('scripts')
+<script>
+    function logout() {
+        document.getElementById('logoutForm').submit();
+    }
+</script>
+@endsection
+
 @endsection

@@ -16,35 +16,32 @@ class DatatableController extends Controller
    
     public function fetchUser(Request $request)
     {
-        Log::info('fetchUser method called'); // Log statement
-
-        // Use DB transaction to ensure data consistency
+        Log::info('fetchUser method called');
+    
         return DB::transaction(function () use ($request) {
+            $page = $request->input('page', 1);
+            $perPage = 10; // Adjust as necessary
+    
             $query = User::leftJoin('buyers', 'users.id', '=', 'buyers.id_user')
                 ->select('users.*', 'buyers.fname', 'buyers.lname', 'buyers.contact', 'buyers.address', 'buyers.barangay', 'buyers.city', 'buyers.landmark');
-
+    
             if ($request->has('search.value')) {
-                $searchValue = $request->input('search.value'); // DataTables sends the search value in `search.value`
+                $searchValue = $request->input('search.value');
                 $query->where(function($q) use ($searchValue) {
                     $q->where('users.email', 'like', "%{$searchValue}%")
                       ->orWhere('buyers.fname', 'like', "%{$searchValue}%")
                       ->orWhere('buyers.lname', 'like', "%{$searchValue}%");
                 });
             }
-
+    
             $totalRecords = $query->count();
-            $filteredRecords = $totalRecords;
-
-            // Ensure that length and start parameters are available and set default values if they are not
-            $length = $request->input('length', 10);
-            $start = $request->input('start', 0);
-
-            $users = $query->skip($start)
-                           ->take($length)
+    
+            $users = $query->skip(($page - 1) * $perPage)
+                           ->take($perPage)
                            ->get();
-
-            Log::info('Users fetched', ['users' => $users]); // Log statement
-
+    
+            Log::info('Users fetched', ['users' => $users]);
+    
             $formattedUsers = $users->map(function($user) {
                 return [
                     'id' => $user->id,
@@ -60,15 +57,13 @@ class DatatableController extends Controller
                     'landmark' => $user->landmark,
                 ];
             });
-
+    
             return response()->json([
-                'draw' => $request->input('draw'),
-                'recordsTotal' => $totalRecords,
-                'recordsFiltered' => $filteredRecords,
                 'data' => $formattedUsers,
             ]);
         });
     }
+    
     public function userIndex(){
 
         return view('datatable');
